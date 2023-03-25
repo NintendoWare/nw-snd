@@ -1,0 +1,1 @@
+namespace nw::snd {}  // namespace nw::snd
