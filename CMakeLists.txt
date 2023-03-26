@@ -11,7 +11,8 @@ include(CTest)
 enable_testing()
 
 add_library(nw_snd STATIC
-    ./src/include/nw/snd/bfbnk.h
+    ./src/include/nw/snd/bfwav.h
+    ./src/bfwav.cpp
 )
 
 target_include_directories(nw_snd PUBLIC ./src/include)
