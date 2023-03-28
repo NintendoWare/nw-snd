@@ -53,7 +53,7 @@ struct ReferenceTableEntry {
 };
 
 struct ADPCMInfo {
-  u16 coefficients;
+  std::array<u16, 16> coefficients;
   u16 pred_scale;
   u16 yn_1;
   u16 yn_2;
@@ -63,6 +63,9 @@ struct ADPCMInfo {
   u16 padding;
   EXIO_DEFINE_FIELDS(ADPCMInfo, coefficients, pred_scale, yn_1, yn_2, loop_pred_scale, loop_yn_1,
                      loop_yn_2, padding);
+
+  static ADPCMInfo Read(exio::BinaryReader reader, size_t offset);
+  void Write(exio::BinaryWriter* writer) const;
 };
 
 struct Channel {
@@ -103,18 +106,17 @@ struct Data {
 class Fwav {
 public:
   static Fwav FromBinary(tcb::span<const u8> data);
-  std::vector<u8> ToBinary(exio::Endianness endian);
+  std::vector<u8> ToBinary(exio::Endianness endian) const;
 
   Fwav(exio::BinaryReader reader, size_t offset);
-  void Write(exio::BinaryWriter writer);
-
-  bfwav::ADPCMInfo GetCodecInfo(bfwav::ChannelInfo channel);
+  void Write(exio::BinaryWriter* writer) const;
 
   tcb::span<const u8> data;
   std::vector<bfwav::Channel> channels;
 
 private:
   bfwav::Info m_info;
+  exio::BinaryReader m_reader;
 };
 
 }  // namespace nw::snd
