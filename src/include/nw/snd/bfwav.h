@@ -1,6 +1,9 @@
+#pragma once
+
 #include <vector>
 
 #include <exio/binary_reader.h>
+#include <exio/binary_writer.h>
 #include <exio/error.h>
 #include <exio/types.h>
 #include <exio/util/magic_utils.h>
@@ -49,13 +52,6 @@ struct ReferenceTableEntry {
   EXIO_DEFINE_FIELDS(ReferenceTableEntry, flag, padding, offset);
 };
 
-struct ChannelInfo {
-  ReferenceTableEntry sound_data_entry;
-  ReferenceTableEntry adpcm_entry;
-  u32 reserved;
-  EXIO_DEFINE_FIELDS(ChannelInfo, sound_data_entry, adpcm_entry, reserved);
-};
-
 struct ADPCMInfo {
   u16 coefficients;
   u16 pred_scale;
@@ -67,6 +63,19 @@ struct ADPCMInfo {
   u16 padding;
   EXIO_DEFINE_FIELDS(ADPCMInfo, coefficients, pred_scale, yn_1, yn_2, loop_pred_scale, loop_yn_1,
                      loop_yn_2, padding);
+};
+
+struct Channel {
+  u32 sound_data_offset;
+  ADPCMInfo adpcm_info;
+  EXIO_DEFINE_FIELDS(Channel, sound_data_offset, adpcm_info);
+};
+
+struct ChannelInfo {
+  ReferenceTableEntry sound_data_entry;
+  ReferenceTableEntry adpcm_entry;
+  u32 reserved;
+  EXIO_DEFINE_FIELDS(ChannelInfo, sound_data_entry, adpcm_entry, reserved);
 };
 
 struct Info {
@@ -94,9 +103,15 @@ struct Data {
 class Fwav {
 public:
   static Fwav FromBinary(tcb::span<const u8> data);
+  std::vector<u8> ToBinary(exio::Endianness endian);
+
   Fwav(exio::BinaryReader reader, size_t offset);
+  void Write(exio::BinaryWriter writer);
+
+  bfwav::ADPCMInfo GetCodecInfo(bfwav::ChannelInfo channel);
+
   tcb::span<const u8> data;
-  std::vector<bfwav::ChannelInfo> channels;
+  std::vector<bfwav::Channel> channels;
 
 private:
   bfwav::Info m_info;
